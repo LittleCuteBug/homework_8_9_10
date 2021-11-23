@@ -195,9 +195,16 @@ Ray Camera::generate_ray(double x, double y) const {
   // Note: hFov and vFov are in degrees.
   //
 
+  double tx = x-0.5;
+  double ty = y-0.5;
 
-  return Ray(pos, Vector3D(0, 0, -1));
+  double Tx = tx / 0.5 * tan(0.5 * hFov * PI / 180.0);
+  double Ty = ty / 0.5 * tan(0.5 * vFov * PI / 180.0);
 
+  Ray r = Ray(pos, (c2w * Vector3D(Tx, Ty, -1)).unit());
+  r.max_t = fClip;
+  r.min_t = nClip;
+  return r;
 }
 
 } // namespace CGL

@@ -28,9 +28,30 @@ bool Triangle::has_intersection(const Ray &r) const {
   // function records the "intersection" while this function only tests whether
   // there is a intersection.
 
+  Vector3D AB = p2 - p1;
+  Vector3D AC = p3 - p1;
+  Vector3D BC = p3 - p2;
+  Vector3D CA = p1 - p3;
 
-  return true;
+  Vector3D N = cross(AB, AC);
 
+  double t = (dot((p1 - r.o), N)) / dot(r.d, N);
+
+  if (t<0  || t < r.min_t || t > r.max_t)
+    return false;
+
+  Vector3D X = r.o + t * r.d;
+
+  Vector3D AX = X - p1;
+  Vector3D BX = X - p2;
+  Vector3D CX = X - p3;
+
+  double f1 = sqrt(cross(AX, AB).norm2());
+  double f2 = sqrt(cross(BX, BC).norm2());
+  double f3 = sqrt(cross(CX, CA).norm2());
+  double s = sqrt(cross(AB, AC).norm2());
+
+  return (abs(s-f1-f2-f3) <= 0.1e-5);
 }
 
 bool Triangle::intersect(const Ray &r, Intersection *isect) const {
@@ -38,10 +59,37 @@ bool Triangle::intersect(const Ray &r, Intersection *isect) const {
   // implement ray-triangle intersection. When an intersection takes
   // place, the Intersection data should be updated accordingly
 
+  Vector3D AB = p2 - p1;
+  Vector3D AC = p3 - p1;
+  Vector3D BC = p3 - p2;
+  Vector3D CA = p1 - p3;
 
-  return true;
+  Vector3D N = cross(AB, AC).unit();
 
+  double t = (dot((p1 - r.o), N)) / dot(r.d, N);
 
+  if (t<0 || t < r.min_t || t > r.max_t)
+    return false;
+
+  Vector3D X = r.o + t * r.d;
+  Vector3D AX = X - p1;
+  Vector3D BX = X - p2;
+  Vector3D CX = X - p3;
+
+  double f1 = sqrt(cross(AX, AB).norm2()); // area of ABX
+  double f2 = sqrt(cross(BX, BC).norm2()); // area of BCX
+  double f3 = sqrt(cross(CX, CA).norm2()); // area of CAX
+  double s = sqrt(cross(AB, AC).norm2()); // area of ABC
+
+  if(abs(s-f1-f2-f3) <= 0.1e-5) { // f1 + f2 + f3 == s
+    r.max_t = t;
+    isect->t = t;
+    isect->n = n1 * f1/s + n2 * f2/s + n3 * f3/s;
+    isect->bsdf = get_bsdf();
+    isect->primitive = this;
+    return true;
+  }
+  return false;
 }
 
 void Triangle::draw(const Color &c, float alpha) const {

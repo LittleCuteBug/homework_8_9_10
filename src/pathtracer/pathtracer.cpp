@@ -182,11 +182,19 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
   int num_samples = ns_aa;          // total samples to evaluate
   Vector2D origin = Vector2D(x, y); // bottom left corner of the pixel
 
+  Vector3D color = Vector3D(0,0,0);
 
-  sampleBuffer.update_pixel(Vector3D(0.2, 1.0, 0.8), x, y);
+  for (int i = 0; i < num_samples; ++i) {
+
+    double _x = x + 1.0*rand()/RAND_MAX;
+    double _y = y + 1.0*rand()/RAND_MAX;
+
+    Ray r = camera->generate_ray(_x/sampleBuffer.w,_y/sampleBuffer.h);
+
+    color += PathTracer::est_radiance_global_illumination(r);
+  }
+  sampleBuffer.update_pixel(color/num_samples, x, y);
   sampleCountBuffer[x + y * sampleBuffer.w] = num_samples;
-
-
 }
 
 void PathTracer::autofocus(Vector2D loc) {
