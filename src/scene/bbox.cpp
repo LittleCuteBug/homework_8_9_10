@@ -14,9 +14,70 @@ bool BBox::intersect(const Ray& r, double& t0, double& t1) const {
   // If the ray intersected the bouding box within the range given by
   // t0, t1, update t0 and t1 with the new intersection times.
 
+  // compute intersect for x
 
-  return true;
+  bool flag = false;
+  double t_min = 1e9;
+  double t_max = -1e9;
+  double t;
+  Vector3D p;
 
+
+  t = dot((min - r.o), Vector3D(1, 0, 0)) / dot(r.d, Vector3D(1, 0, 0));
+  p = r.at_time(t);
+  if (p.y >= min.y && p.y <= max.y && p.z >= min.z && p.z <= max.z) {
+    flag = true;
+    if (t < t_min) t_min = t;
+    if (t > t_max) t_max = t;
+  }
+
+  t = dot((max - r.o), Vector3D(1, 0, 0)) / dot(r.d, Vector3D(1, 0, 0));
+  p = r.at_time(t);
+  if (p.y >= min.y && p.y <= max.y && p.z >= min.z && p.z <= max.z) {
+    flag = true;
+    if (t < t_min) t_min = t;
+    if (t > t_max) t_max = t;
+  }
+
+  t = dot((min - r.o), Vector3D(0, 1, 0)) / dot(r.d, Vector3D(0, 1, 0));
+  p = r.at_time(t);
+  if (p.x >= min.x && p.x <= max.x && p.z >= min.z && p.z <= max.z) {
+    flag = true;
+    if (t < t_min) t_min = t;
+    if (t > t_max) t_max = t;
+  }
+
+  t = dot((max - r.o), Vector3D(0, 1, 0)) / dot(r.d, Vector3D(0, 1, 0));
+  p = r.at_time(t);
+  if (p.x >= min.x && p.x <= max.x && p.z >= min.z && p.z <= max.z) {
+    flag = true;
+    if (t < t_min) t_min = t;
+    if (t > t_max) t_max = t;
+  }
+
+  t = dot((min - r.o), Vector3D(0, 0, 1)) / dot(r.d, Vector3D(0, 0, 1));
+  p = r.at_time(t);
+  if (p.x >= min.x && p.x <= max.x && p.y >= min.y && p.y <= max.y) {
+    flag = true;
+    if (t < t_min) t_min = t;
+    if (t > t_max) t_max = t;
+  }
+
+  t = dot((max - r.o), Vector3D(0, 0, 1)) / dot(r.d, Vector3D(0, 0, 1));
+  p = r.at_time(t);
+  if (p.x >= min.x && p.x <= max.x && p.y >= min.y && p.y <= max.y) {
+    flag = true;
+    if (t < t_min) t_min = t;
+    if (t > t_max) t_max = t;
+  }
+
+  if (flag){
+    t0 = t_min;
+    t1 = t_max;
+    return true;
+  } else {
+    return false;
+  }
 }
 
 void BBox::draw(Color c, float alpha) const {

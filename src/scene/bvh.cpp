@@ -116,11 +116,10 @@ BVHNode *BVHAccel::construct_bvh(std::vector<Primitive *>::iterator start,
     }
   }
 
-  if(it1 == start)
-    it1++;
-
-  if(it1 == end)
-    it1--;
+  if(it1 == start || it1 == end) {
+    int dist = distance(start,end);
+    advance(it1, dist/2);
+  }
 
   node->l = construct_bvh(start, it1, max_leaf_size);
   node->r = construct_bvh(it1, end, max_leaf_size);
@@ -136,32 +135,44 @@ bool BVHAccel::has_intersection(const Ray &ray, BVHNode *node) const {
   // Intersection version cannot, since it returns as soon as it finds
   // a hit, it doesn't actually have to find the closest hit.
 
+  double t0, t1;
+  bool flag = node->bb.intersect(ray,t0,t1);
+  if(!flag || t0 > ray.max_t || t1 < ray.min_t)
+    return false;
 
-
-  for (auto p : primitives) {
-    total_isects++;
-    if (p->has_intersection(ray))
-      return true;
+  if (node->isLeaf()){
+    for (auto p = node->start; p != node->end; p++) {
+      total_isects++;
+      if ((*p)->has_intersection(ray))
+        return true;
+    }
+    return false;
+  } else {
+    return has_intersection(ray, node->l) || has_intersection(ray, node->r);
   }
-  return false;
-
-
 }
 
 bool BVHAccel::intersect(const Ray &ray, Intersection *i, BVHNode *node) const {
   // TODO (Part 2.3):
   // Fill in the intersect function.
 
+  double t0, t1;
+  bool flag;
+  flag = node->bb.intersect(ray,t0,t1);
+  if(!flag || t0 > ray.max_t || t1 < ray.min_t)
+    return false;
 
-
-  bool hit = false;
-  for (auto p : primitives) {
-    total_isects++;
-    hit = p->intersect(ray, i) || hit;
+  if (node->isLeaf()){
+    flag = false;
+    for (auto p = node->start; p != node->end; p++) {
+      total_isects++;
+      if ((*p)->intersect(ray,i))
+        flag = true;
+    }
+    return flag;
+  } else {
+    return intersect(ray, i, node->l) || intersect(ray, i , node->r);
   }
-  return hit;
-
-
 }
 
 } // namespace SceneObjects
