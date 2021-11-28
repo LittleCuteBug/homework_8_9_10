@@ -58,20 +58,74 @@ BVHNode *BVHAccel::construct_bvh(std::vector<Primitive *>::iterator start,
   // single leaf node (which is also the root) that encloses all the
   // primitives.
 
-
   BBox bbox;
-
+  int cntBox = 0;
   for (auto p = start; p != end; p++) {
     BBox bb = (*p)->get_bbox();
     bbox.expand(bb);
+    cntBox++;
   }
 
   BVHNode *node = new BVHNode(bbox);
-  node->start = start;
-  node->end = end;
+
+  if(cntBox <= max_leaf_size) {
+    node->start = start;
+    node->end = end;
+    return node;
+  }
+
+  Vector3D centroid = bbox.centroid();
+
+  double length_x = bbox.max.x - bbox.min.x;
+  double length_y = bbox.max.y - bbox.min.y;
+  double length_z = bbox.max.z - bbox.min.z;
+
+  std::vector<Primitive *>::iterator it1, it2;
+  it1 = start;
+  it2 = end;
+
+  if(length_x >= length_y && length_x >= length_z) {  // split by x
+    while (it1 != it2)
+    {
+      Vector3D bb_centroid = (*it1)->get_bbox().centroid();
+      if(bb_centroid.x >= centroid.x) {
+        swap(*(it1), *(--it2));
+      } else {
+        it1 ++;
+      }
+    }
+  } else if(length_y >= length_x && length_y >= length_z) {  // split by y
+    while (it1 != it2)
+    {
+      Vector3D bb_centroid = (*it1)->get_bbox().centroid();
+      if(bb_centroid.y >= centroid.y) {
+        swap(*(it1), *(--it2));
+      } else {
+        it1 ++;
+      }
+    }
+  } else {  // split by z
+    while (it1 != it2)
+    {
+      Vector3D bb_centroid = (*it1)->get_bbox().centroid();
+      if(bb_centroid.z >= centroid.z) {
+        swap(*(it1), *(--it2));
+      } else {
+        it1 ++;
+      }
+    }
+  }
+
+  if(it1 == start)
+    it1++;
+
+  if(it1 == end)
+    it1--;
+
+  node->l = construct_bvh(start, it1, max_leaf_size);
+  node->r = construct_bvh(it1, end, max_leaf_size);
 
   return node;
-
 
 }
 
