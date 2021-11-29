@@ -140,7 +140,7 @@ bool BVHAccel::has_intersection(const Ray &ray, BVHNode *node) const {
   if(!flag || t0 > ray.max_t || t1 < ray.min_t)
     return false;
 
-  if (node->isLeaf()){
+  if (node->isLeaf()) {
     for (auto p = node->start; p != node->end; p++) {
       total_isects++;
       if ((*p)->has_intersection(ray))
@@ -162,7 +162,7 @@ bool BVHAccel::intersect(const Ray &ray, Intersection *i, BVHNode *node) const {
   if(!flag || t0 > ray.max_t || t1 < ray.min_t)
     return false;
 
-  if (node->isLeaf()){
+  if (node->isLeaf()) {
     flag = false;
     for (auto p = node->start; p != node->end; p++) {
       total_isects++;
@@ -171,7 +171,9 @@ bool BVHAccel::intersect(const Ray &ray, Intersection *i, BVHNode *node) const {
     }
     return flag;
   } else {
-    return intersect(ray, i, node->l) || intersect(ray, i , node->r);
+    bool flag1 = intersect(ray, i, node->l);
+    bool flag2 = intersect(ray, i , node->r);
+    return flag1 || flag2;
   }
 }
 
