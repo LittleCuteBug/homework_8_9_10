@@ -118,6 +118,7 @@ BVHNode *BVHAccel::construct_bvh(std::vector<Primitive *>::iterator start,
 
   if(it1 == start || it1 == end) {
     int dist = distance(start,end);
+    it1 = start;
     advance(it1, dist/2);
   }
 
